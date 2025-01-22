@@ -7,6 +7,7 @@ const resolvers = {
       if (context.user) {
         return User.findOne({ _id: context.user._id });
       }
+      
       throw AuthenticationError;
     },
   },
@@ -26,7 +27,7 @@ const resolvers = {
         throw AuthenticationError;
       }
 
-      const correctPw = await User.isCorrectPassword(password);
+      const correctPw = await user.isCorrectPassword(password);
 
       if (!correctPw) {
         throw AuthenticationError;
@@ -39,16 +40,12 @@ const resolvers = {
     saveBook: async (parent, { book }, context) => {
 
       if (context.user) {
-        return User.findOneAndUpdate(
-          { _id: user._id },
-          {
-            $addToSet: { savedBooks: book  },
-          },
-          {
-            new: true,
-            runValidators: true,
-          }
+        const user= await User.findOneAndUpdate(
+          { _id: context.user._id },
+          {$addToSet: { savedBooks: book  }}
         );
+
+        return user;
       }
 
       throw AuthenticationError;
@@ -56,12 +53,14 @@ const resolvers = {
     
     removeBook: async (parent, { bookId }, context) => {
       if (context.user) {
-        return User.findOneAndUpdate(
+        const user= await User.findOneAndUpdate(
           { _id: context.user._id },
-          { $pull: {savedBooks:  { bookId } } },
-          { new: true }
+          { $pull: {savedBooks:  { bookId } } }
         );
+        
+        return user;
       }
+
       throw AuthenticationError;
     },
   },
